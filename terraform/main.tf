@@ -264,7 +264,7 @@ resource "aws_ecs_task_definition" "histomics_task" {
     [
       {
         name  = "histomics-server"
-        image = "zachmullen/histomics-load-test@sha256:3e4e88002584b30fe9eab332670ce06efecb4e9a9c74c8874ca51774239fddca"
+        image = "zachmullen/histomics-load-test@sha256:1afd3dd17e4fcb42eaab743cea6815686ecd4d976367854428419fe886b67e9f"
         entryPoint = [
           "gunicorn",
           "girder.wsgi:app",

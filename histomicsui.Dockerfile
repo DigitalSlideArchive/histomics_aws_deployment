@@ -26,7 +26,7 @@ RUN curl -sL https://deb.nodesource.com/setup_20.x | bash - && \
 RUN pip install --find-links https://girder.github.io/large_image_wheels \
     gunicorn \
     'large-image[sources]>=1.32.4.a122' \
-    'girder>=5.0.0a6' \
+    'girder>=5.0.0a8.dev57' \
     'girder-plugin-worker>=5.0.0a8.dev48' \
     'girder-sentry>=5.0.0a6' \
     'girder-slicer-cli-web>=5.0.0a8.dev2' \
