@@ -68,6 +68,15 @@
       become: yes
       become_user: root
 
+    - name: Install large-image worker packages
+      ansible.builtin.pip:
+        name: "girder-large-image-annotation[tasks]>=1.32.5a123"
+        extra_args: "--find-links=https://girder.github.io/large_image_wheels"
+        state: latest
+        virtualenv: "{{ girder_worker_virtualenv }}"
+      become: yes
+      become_user: root
+
     - name: Downgrade urllib3 (docker-py does not yet support urllib3>=2)
       pip:
         name: "urllib3<2"
