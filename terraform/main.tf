@@ -258,7 +258,7 @@ resource "aws_ecs_task_definition" "histomics_task" {
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
   cpu                      = 4096
-  memory                   = 8192
+  memory                   = 16384
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
   container_definitions = jsonencode(
     [
@@ -269,12 +269,12 @@ resource "aws_ecs_task_definition" "histomics_task" {
           "gunicorn",
           "girder.wsgi:app",
           "--bind=0.0.0.0:8080",
-          "--workers=5",
+          "--workers=4",
           "--preload",
           "--timeout=7200"
         ],
         cpu       = 4096
-        memory    = 8192
+        memory    = 16384
         essential = true
         portMappings = [
           {
@@ -306,6 +306,10 @@ resource "aws_ecs_task_definition" "histomics_task" {
           {
             name  = "GIRDER_STATIC_REST_ONLY" # don't dynamically generate slicer_cli_web endpoints
             value = "true"
+          },
+          {
+            name  = "GIRDER_NOTIFICATION_REDIS_URL"
+            value = "redis://default:${random_password.redis_password.result}@${aws_elasticache_replication_group.redis.primary_endpoint_address}:6379"
           }
         ],
         mountPoints = [
