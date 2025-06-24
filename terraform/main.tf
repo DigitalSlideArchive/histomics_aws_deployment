@@ -231,7 +231,7 @@ resource "aws_ecs_task_definition" "histomics_task" {
     [
       {
         name  = "histomics-server"
-        image = "zachmullen/histomics-load-test@sha256:405b04fa9a13464ca20c1395ff27470bc1da672ea19b76afb7da8f5a208cdde2"
+        image = "zachmullen/histomics-load-test@sha256:37bec4bbeac4dfa30e816a27eb1594f66f2b45e5731ef8ede3877f29dd4ddf0d"
         entryPoint = [
           "gunicorn",
           "girder.wsgi:app",
@@ -243,6 +243,13 @@ resource "aws_ecs_task_definition" "histomics_task" {
         cpu       = 4096
         memory    = 16384
         essential = true
+        healthCheck = {
+          command = ["CMD-SHELL", "curl -f http://localhost:8080/ || exit 1"]
+          interval = 30
+          timeout = 5
+          retries = 3
+          startPeriod = 30
+        }
         portMappings = [
           {
             containerPort = 8080
