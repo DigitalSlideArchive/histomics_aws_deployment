@@ -32,9 +32,6 @@ resource "aws_default_vpc" "default" {
   }
 }
 
-resource "aws_efs_file_system" "assetstore" {
-}
-
 data "aws_subnets" "default" {
   filter {
     name   = "vpc-id"
@@ -70,24 +67,6 @@ resource "aws_service_discovery_http_namespace" "internal" {
 
 resource "aws_cloudwatch_log_group" "histomics_logs" {
   name = "histomics-logs"
-}
-
-resource "aws_security_group" "efs_mount_target_sg" {
-  name = "efs-mount-target-sg"
-
-  ingress {
-    from_port   = 2049
-    to_port     = 2049
-    protocol    = "tcp"
-    cidr_blocks = [aws_default_vpc.default.cidr_block]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
 }
 
 resource "aws_security_group" "lb_sg" {
@@ -157,18 +136,6 @@ resource "aws_lb" "ecs_lb" {
   load_balancer_type = "application"
   subnets            = data.aws_subnets.default.ids
   security_groups    = [aws_security_group.lb_sg.id]
-}
-
-resource "aws_efs_mount_target" "mount_target_assetstore_az1" {
-  file_system_id  = aws_efs_file_system.assetstore.id
-  subnet_id       = data.aws_subnets.default.ids[0]
-  security_groups = [aws_security_group.efs_mount_target_sg.id]
-}
-
-resource "aws_efs_mount_target" "mount_target_assetstore_az2" {
-  file_system_id  = aws_efs_file_system.assetstore.id
-  subnet_id       = data.aws_subnets.default.ids[1]
-  security_groups = [aws_security_group.efs_mount_target_sg.id]
 }
 
 resource "aws_lb_target_group" "ecs_target_group" {
@@ -264,18 +231,25 @@ resource "aws_ecs_task_definition" "histomics_task" {
     [
       {
         name  = "histomics-server"
-        image = "zachmullen/histomics-load-test@sha256:1afd3dd17e4fcb42eaab743cea6815686ecd4d976367854428419fe886b67e9f"
+        image = "zachmullen/histomics-load-test@sha256:37bec4bbeac4dfa30e816a27eb1594f66f2b45e5731ef8ede3877f29dd4ddf0d"
         entryPoint = [
           "gunicorn",
           "girder.wsgi:app",
           "--bind=0.0.0.0:8080",
           "--workers=4",
           "--preload",
-          "--timeout=7200"
+          "--timeout=30"
         ],
         cpu       = 4096
         memory    = 16384
         essential = true
+        healthCheck = {
+          command = ["CMD-SHELL", "curl -f http://localhost:8080/ || exit 1"]
+          interval = 30
+          timeout = 5
+          retries = 3
+          startPeriod = 30
+        }
         portMappings = [
           {
             containerPort = 8080
