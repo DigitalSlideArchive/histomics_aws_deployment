@@ -25,13 +25,11 @@ RUN curl -sL https://deb.nodesource.com/setup_20.x | bash - && \
 
 RUN pip install --find-links https://girder.github.io/large_image_wheels \
     gunicorn \
-    'large-image[sources]>=1.32.4.a122' \
+    'large-image[sources]>=1.32.10' \
     'girder>=5.0.0a8.dev57' \
     'girder-plugin-worker>=5.0.0a8.dev48' \
     'girder-sentry>=5.0.0a6' \
-    'girder-slicer-cli-web>=5.0.0a8.dev2' \
-    'girder-large-image>=1.32.4a122' \
-    'girder-large-image-annotation>=1.32.4a122'
+    'girder-slicer-cli-web>=5.0.0a8.dev2'
 
 # TODO once Histomics has girder 5 packages on pypi, use that instead
 RUN cd /opt && \

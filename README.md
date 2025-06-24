@@ -25,7 +25,7 @@ using highly managed, scalable services, including
 
 ### Deploying
 
-1. `docker build -t zachmullen/histomics-load-test -f histomicsui.Dockerfile .`
+1. `DOCKER_DEFAULT_PLATFORM=linux/amd64 docker build -t zachmullen/histomics-load-test -f histomicsui.Dockerfile .`
 1. `docker push zachmullen/histomics-load-test`
 1. Copy the SHA from the docker push command and paste it into `main.tf`
 1. From the terraform directory, run `terraform apply -var-file=.tfvars`
