@@ -19,11 +19,11 @@ variable "sentry_frontend_dsn" {
 }
 
 variable "domain_name" {
-  type    = string
+  type = string
 }
 
 variable "worker_ami_id" {
-  type    = string
+  type = string
 }
 
 resource "aws_default_vpc" "default" {
@@ -244,10 +244,10 @@ resource "aws_ecs_task_definition" "histomics_task" {
         memory    = 16384
         essential = true
         healthCheck = {
-          command = ["CMD-SHELL", "curl -f http://localhost:8080/ || exit 1"]
-          interval = 30
-          timeout = 5
-          retries = 3
+          command     = ["CMD-SHELL", "curl -f http://localhost:8080/ || exit 1"]
+          interval    = 30
+          timeout     = 5
+          retries     = 3
           startPeriod = 30
         }
         portMappings = [
@@ -284,6 +284,10 @@ resource "aws_ecs_task_definition" "histomics_task" {
           {
             name  = "GIRDER_NOTIFICATION_REDIS_URL"
             value = "redis://default:${random_password.redis_password.result}@${aws_elasticache_replication_group.redis.primary_endpoint_address}:6379"
+          },
+          {
+            name  = "GIRDER_MONGODB_ATLAS_URL"
+            value = local.mongodb_connection_string
           }
         ],
         mountPoints = [

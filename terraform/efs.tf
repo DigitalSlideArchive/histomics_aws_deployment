@@ -23,8 +23,8 @@ resource "aws_security_group" "efs_mount_target_sg" {
 resource "aws_efs_mount_target" "targets" {
   for_each = toset(data.aws_subnets.default.ids)
 
-  file_system_id  = aws_efs_file_system.assetstore.id
-  subnet_id       = each.key
+  file_system_id = aws_efs_file_system.assetstore.id
+  subnet_id      = each.key
 
   security_groups = [aws_security_group.efs_mount_target_sg.id]
 }
