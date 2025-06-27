@@ -28,8 +28,8 @@ resource "aws_instance" "worker" {
   user_data              = <<EOF
 #!/bin/bash
 echo 'mount -t efs ${aws_efs_file_system.assetstore.id}:/ /assetstore' >> /etc/mount_assetstore.sh
-echo 'GIRDER_WORKER_BROKER=amqps://histomics:${random_password.mq_password.result}@${aws_mq_broker.jobs_queue.id}.mq.${data.aws_region.current.name}.on.aws:5671' >> /etc/girder_worker.env
-echo 'GIRDER_MONGO_URI=${local.mongodb_uri}' >> /etc/girder_worker.env
+echo 'GIRDER_WORKER_BROKER=amqps://histomics:${random_password.mq_password.result}@${aws_mq_broker.jobs_queue.id}.mq.${data.aws_region.current.region}.on.aws:5671' >> /etc/girder_worker.env
+echo 'GIRDER_MONGO_URI=${local.mongodb_connection_string}' >> /etc/girder_worker.env
 EOF
   subnet_id              = data.aws_subnets.default.ids[0]
   iam_instance_profile   = aws_iam_instance_profile.worker.name

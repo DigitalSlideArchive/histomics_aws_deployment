@@ -1,44 +1,81 @@
-resource "aws_security_group" "mongo_sg" {
-  name = "mongo-sg"
-
-  ingress {
-    from_port       = 27017 # can't use `aws_docdb_cluster.histomics.port` as it would create a cycle
-    to_port         = 27017
-    protocol        = "tcp"
-    security_groups = [aws_security_group.histomics_worker_sg.id, aws_security_group.histomics_sg.id]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+terraform {
+  required_providers {
+    mongodbatlas = {
+      source  = "mongodb/mongodbatlas"
+      version = "~> 1.36"
+    }
   }
 }
 
-resource "random_password" "mongo_password" {
+provider "mongodbatlas" {
+}
+
+variable "mongodbatlas_org_id" {
+  type = string
+}
+
+variable "mongodbatlas_project_name" {
+  type    = string
+  default = "histomics"
+}
+
+variable "mongodbatlas_instance_size_name" {
+  type    = string
+  default = "M10"
+}
+
+resource "mongodbatlas_project" "histomics_project" {
+  org_id = var.mongodbatlas_org_id
+  name   = var.mongodbatlas_project_name
+}
+
+resource "mongodbatlas_cluster" "histomics_cluster" {
+  provider_name = "AWS"
+  project_id    = mongodbatlas_project.histomics_project.id
+  name          = "histomics-cluster"
+  cluster_type  = "REPLICASET"
+  replication_specs {
+    num_shards = 1
+    regions_config {
+      region_name     = "US_EAST_1"
+      electable_nodes = 3
+      priority        = 7
+      read_only_nodes = 0
+    }
+  }
+  backing_provider_name = "AWS"
+
+  provider_instance_size_name = var.mongodbatlas_instance_size_name
+  cloud_backup                = true
+  mongo_db_major_version      = "7.0"
+}
+
+resource "random_password" "mongodb_atlas_password" {
   length  = 20
-  special = false # So we don't have to urlencode this further down
+  special = false
 }
 
-resource "aws_docdb_cluster" "histomics" {
-  cluster_identifier           = "histomics"
-  engine_version               = "5.0.0"
-  master_username              = "histomics"
-  master_password              = random_password.mongo_password.result
-  backup_retention_period      = 5
-  preferred_backup_window      = "07:00-09:00"         # this is in UTC
-  preferred_maintenance_window = "wed:05:00-wed:07:00" # this is in UTC
-  vpc_security_group_ids       = [aws_security_group.mongo_sg.id]
+resource "mongodbatlas_database_user" "histomics_user" {
+  auth_database_name = "admin"
+  project_id         = mongodbatlas_project.histomics_project.id
+  username           = "histomics"
+  password           = random_password.mongodb_atlas_password.result
+  roles {
+    role_name     = "readWrite"
+    database_name = "girder"
+  }
 }
 
-resource "aws_docdb_cluster_instance" "histomics" {
-  count              = 1
-  identifier         = "histomics-cluster-instance-${count.index}"
-  cluster_identifier = aws_docdb_cluster.histomics.id
-  instance_class     = "db.r6g.large"
+resource "mongodbatlas_project_ip_access_list" "histomics" {
+  project_id = mongodbatlas_project.histomics_project.id
+  cidr_block = "0.0.0.0/0" # TODO use public-facing VPC CIDR block
 }
 
 locals {
-  mongodb_uri = "mongodb://histomics:${random_password.mongo_password.result}@${aws_docdb_cluster.histomics.endpoint}:${aws_docdb_cluster.histomics.port}/girder?tls=true&tlsInsecure=true&replicaSet=rs0&readPreference=secondaryPreferred&retryWrites=false"
+  mongodb_connection_string = format(
+    "mongodb+srv://%s:%s@%s",
+    mongodbatlas_database_user.histomics_user.username,
+    urlencode(mongodbatlas_database_user.histomics_user.password),
+    replace(mongodbatlas_cluster.histomics_cluster.connection_strings.0.standard_srv, "mongodb+srv://", "")
+  )
 }

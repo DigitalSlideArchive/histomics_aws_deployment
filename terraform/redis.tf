@@ -7,14 +7,14 @@ resource "aws_elasticache_user" "histomics" {
   user_id       = "histomics"
   user_name     = "default"
   access_string = "on ~* +@all"
-  engine        = "REDIS"
+  engine        = "redis"
   passwords     = [random_password.redis_password.result]
 }
 
 resource "aws_elasticache_user_group" "histomics" {
-  user_group_id   = "histomics"
-  engine          = "REDIS"
-  user_ids        = [aws_elasticache_user.histomics.user_id]
+  user_group_id = "histomics"
+  engine        = "redis"
+  user_ids      = [aws_elasticache_user.histomics.user_id]
 }
 
 resource "aws_security_group" "redis_sg" {
@@ -38,17 +38,17 @@ resource "aws_security_group" "redis_sg" {
 }
 
 resource "aws_elasticache_replication_group" "redis" {
-  replication_group_id          = "histomics"
-  description                   = "Histomics Redis"
-  engine                        = "redis"
-  engine_version                = "7.0"
-  node_type                     = "cache.t3.micro"
-  num_cache_clusters            = 1
-  automatic_failover_enabled    = false
+  replication_group_id       = "histomics"
+  description                = "Histomics Redis"
+  engine                     = "redis"
+  engine_version             = "7.0"
+  node_type                  = "cache.t3.micro"
+  num_cache_clusters         = 1
+  automatic_failover_enabled = false
 
-  user_group_ids                = [aws_elasticache_user_group.histomics.user_group_id]
-  security_group_ids            = [aws_security_group.redis_sg.id]
+  user_group_ids     = [aws_elasticache_user_group.histomics.user_group_id]
+  security_group_ids = [aws_security_group.redis_sg.id]
 
-  transit_encryption_enabled    = true
-  at_rest_encryption_enabled    = true
+  transit_encryption_enabled = true
+  at_rest_encryption_enabled = true
 }
