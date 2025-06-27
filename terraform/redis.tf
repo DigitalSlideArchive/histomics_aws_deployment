@@ -7,13 +7,13 @@ resource "aws_elasticache_user" "histomics" {
   user_id       = "histomics"
   user_name     = "default"
   access_string = "on ~* +@all"
-  engine        = "REDIS"
+  engine        = "redis"
   passwords     = [random_password.redis_password.result]
 }
 
 resource "aws_elasticache_user_group" "histomics" {
   user_group_id = "histomics"
-  engine        = "REDIS"
+  engine        = "redis"
   user_ids      = [aws_elasticache_user.histomics.user_id]
 }
 

@@ -259,11 +259,11 @@ resource "aws_ecs_task_definition" "histomics_task" {
         environment = [
           {
             name  = "GIRDER_MONGO_URI"
-            value = local.mongodb_uri
+            value = local.mongodb_connection_string
           },
           {
             name  = "GIRDER_WORKER_BROKER"
-            value = "amqps://histomics:${random_password.mq_password.result}@${aws_mq_broker.jobs_queue.id}.mq.${data.aws_region.current.name}.on.aws:5671"
+            value = "amqps://histomics:${random_password.mq_password.result}@${aws_mq_broker.jobs_queue.id}.mq.${data.aws_region.current.region}.on.aws:5671"
           },
           {
             name  = "SENTRY_BACKEND_DSN"
@@ -285,10 +285,6 @@ resource "aws_ecs_task_definition" "histomics_task" {
             name  = "GIRDER_NOTIFICATION_REDIS_URL"
             value = "redis://default:${random_password.redis_password.result}@${aws_elasticache_replication_group.redis.primary_endpoint_address}:6379"
           },
-          {
-            name  = "GIRDER_MONGODB_ATLAS_URL"
-            value = local.mongodb_connection_string
-          }
         ],
         mountPoints = [
           {
