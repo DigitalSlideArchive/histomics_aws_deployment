@@ -6,6 +6,45 @@
     celery_executable: "{{ girder_worker_virtualenv }}/bin/celery"
 
   tasks:
+    - name: Add NVIDIA GPG key
+      apt_key:
+        url: https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/3bf863cc.pub
+        state: present
+      become: yes
+      become_user: root
+
+    - name: Add CUDA repository
+      apt_repository:
+        repo: "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64 /"
+        state: present
+        filename: nvidia-cuda
+      become: yes
+      become_user: root
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      become: yes
+      become_user: root
+
+    - name: Install CUDA driver and runtime only
+      apt:
+        name:
+          - cuda-drivers
+          - cuda-runtime-11-8
+          - cuda-toolkit-11-8
+        state: present
+      become: yes
+      become_user: root
+
+    - name: Install nvidia docker
+      apt:
+        name: nvidia-docker2
+        state: present
+      become: yes
+      become_user: root
+
     - name: Install Girder Worker system dependencies
       apt:
         name: "{{ item }}"

@@ -8,11 +8,17 @@ packer {
 }
 
 source "amazon-ebs" "histomics-worker" {
-  instance_type = "t3.xlarge"
+  instance_type = "g5.xlarge"
   region        = "us-east-1"
   source_ami    = "ami-0fc5d935ebf8bc3bc"
   ssh_username  = "ubuntu"
   ami_name      = "${source.name}-${formatdate("YYYY.MM.DD-hh.mm.ss", timestamp())}"
+  launch_block_device_mappings {
+    device_name = "/dev/sda1"
+    volume_size = 256
+    volume_type = "gp3"
+    delete_on_termination = true
+  }
 }
 
 build {

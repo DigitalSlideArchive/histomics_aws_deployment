@@ -22,7 +22,7 @@ resource "aws_key_pair" "worker_ec2_ssh_key" {
 
 resource "aws_instance" "worker" {
   ami                    = var.worker_ami_id
-  instance_type          = "t3.xlarge"
+  instance_type          = "g5.4xlarge"
   count                  = 1
   vpc_security_group_ids = [aws_security_group.histomics_worker_sg.id]
   user_data              = <<EOF

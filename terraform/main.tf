@@ -285,10 +285,10 @@ resource "aws_ecs_task_definition" "histomics_task" {
             name  = "GIRDER_NOTIFICATION_REDIS_URL"
             value = "redis://default:${random_password.redis_password.result}@${aws_elasticache_replication_group.redis.primary_endpoint_address}:6379"
           },
-          {
-            name  = "GIRDER_MONGODB_ATLAS_URL"
-            value = local.mongodb_connection_string
-          }
+          #{
+          #  name  = "GIRDER_MONGODB_ATLAS_URL"
+          #  value = local.mongodb_connection_string
+          #}
         ],
         mountPoints = [
           {
